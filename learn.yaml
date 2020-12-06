@@ -1,0 +1,106 @@
+# this is a comment #
+# list is defined by -
+# list within list versions: [1.9,2.0,2.1]
+
+microservices:
+  - app: user-authentication
+    port: 9000
+    version: 1.7
+    deployed: off 
+  - app: shoping-cart
+    port: 9001
+    version: 
+      - 1.9
+      - 2.0
+      - 2.1
+microservices:
+  - user-authentication
+  - shoping-cart
+
+### Openshift pod configuration
+### YAML is key value pairs
+### metadata=object
+### labels=object
+### containers = list of objects
+### ports = list
+### volumeMounts=list of objects
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+  labels:
+    app: hello-openshift
+  namespace: coremon-prod
+spec:
+  containers:
+    - name: hello-openshift
+      image: openshift/hello-openshift
+      ports:
+        - containerPort: 8080
+      volumeMounts: example-vol
+        - mountPath: /usr/example/html
+    - name: sidecar-container
+      image: curlimages/curl
+      comand: ["/bin/sh"]
+      args: ["-c", "echo hello from the sidecar container; sleep 300"]
+
+###multi-line string |
+multlineString: |
+| this is a multiline string
+| and this is the next line
+| next line
+
+singlelineString: >
+| this is a signle line string, 
+| that should be all one line.
+| some other stuff
+
+###Example of a config file
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config-file
+data:
+    mosquitto.conf: |
+    | log_dest stdout
+    | log_typ all
+    | log_timestamp true
+    | listener 9001
+
+###Another example of config file
+command:
+  - sh
+  - "-c"
+  - |
+    #!/usr/bin/env bash -e
+    http () {
+        local path="${1}"
+        set -- -XGET -s --fail
+        #some more stuff 
+        curl -k "$@" "http://localhost:5601${path}"
+    }
+    http "/app/kibana"
+
+### example of mysql pod
+### env variable $ ($MYSQL_ROOT_PASSWORD is the name of the env variable)
+commnad:
+  - "/bin/sh"
+  - -ec   
+  - >-
+  | mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD -e 'SELECT 1'  
+
+### place holder and template generater
+### place holder {{}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+spec:
+  selector:
+    app: {{ .Values.service.app }}
+  ports:
+    - portocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetport }}
+
+### multiple components in a yaml file ---
